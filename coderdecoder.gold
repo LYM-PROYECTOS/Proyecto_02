@@ -1,0 +1,461 @@
+using gold.**
+
+// -----------------------
+
+//  
+
+procedure main(args:String[]) begin
+	//test(createCoder())
+	coder:=createCoder()
+	deCoder := createDecoder()
+	//print "Input strings of the form xyz:W#. with x, y, over "+A +"and W  over   "+ A+"* (end with an empty string)"
+	Utilities.testCodeDecode (coder, deCoder)
+end
+
+
+
+
+function createCoder():ITransducer begin
+	Est :=    {"ST", "ERR"} 
+			∪ { ⟨a⟩ | a ∈   ('0'‥'3')}
+			∪ { ⟨a,b⟩ | a ∈   ('0'‥'3'), b ∈    ('0'‥'3')\{a}}
+			∪ { ⟨a,b,c⟩ | a ∈   ('0'‥'3'), b ∈    ('0'‥'3')\{a},c ∈   ('0'‥'3')\{a,b}}
+			∪ { ⟨a,b,c,d,'3'⟩ | a ∈   ('0'‥'3'), b ∈    ('0'‥'3')\{a}, c ∈   ('0'‥'3')\{a,b}, d ∈  ('0'‥'3')\{a,b,c}} 
+			∪ { ⟨a,b,c,d,e,f,ga,ha,i⟩ | a ∈   ('0'‥'3'), b ∈    ('0'‥'3')\{a}, c ∈   ('0'‥'3')\{a,b}, d ∈  ('0'‥'3')\{a,b,c}, e ∈ ('a'‥'d'), f ∈ ('a'‥'d'),ga ∈ ('a'‥'d'),ha ∈ ('a'‥'d'),i ∈ ('4'‥'7')} 
+	Alf :=  ('0'‥'3') ∪ ('a'‥'d') 
+	Out := Alf 
+	Ini := "ST"
+			
+	Fin := { ⟨a,b,c,d,e,f,ga,ha,'7'⟩ | a ∈   ('0'‥'3'), b ∈    ('0'‥'3')\{a}, c ∈   ('0'‥'3')\{a,b}, d ∈  ('0'‥'3')\{a,b,c}, e ∈ ('a'‥'d'), f ∈ ('a'‥'d'),ga ∈ ('a'‥'d'),ha ∈ ('a'‥'d')} ∪ {"ERR"}
+	return  GDeterministicTransducer(Est,Alf,Out,Ini,Fin,TrC,ImpEstC,ImpFleC)
+end
+
+function TrC(est,sim) begin
+	if est = "ST" and sim in ('0'‥'3') then
+		return ⟨sim⟩
+	elseif est= "ST" and sim in ('a'‥'d') then return "ERR"
+	elseif est = "ERR" then return "ERR"
+	elseif |est| = 1 and not (sim in est) and sim in ('0'‥'3') then return ⟨est[0],sim⟩
+	elseif |est| = 2 and not (sim in est) and sim in ('0'‥'3') then return ⟨est[0],est[1],sim⟩
+	elseif |est| = 3 and not (sim in est) and sim in ('0'‥'3') then return ⟨est[0],est[1],est[2],sim,'3'⟩
+	elseif |est| = 5 and sim in ('a'‥'d') then return ⟨est[0],est[1],est[2],est[3],sim,'a','a','a','4'⟩
+	elseif |est| = 9 and sim in ('a'‥'d') then
+		if est[8] = '4' then return ⟨est[0],est[1],est[2],est[3],est[4],sim,'a','a','5'⟩
+		elseif est[8] = '5' then return ⟨est[0],est[1],est[2],est[3],est[4],est[5],sim,'a','6'⟩
+		elseif est[8] = '6' then return ⟨est[0],est[1],est[2],est[3],est[4],est[5],est[6],sim,'7'⟩
+		elseif est[8] = '7' then return ⟨est[0],est[1],est[2],est[3],sim,'a','a','a','4'⟩
+		else return "ERR"
+		end 
+	else return "ERR"
+	end
+end
+
+function ImpEstC(est) begin
+		if |est|=5 then
+		if est[0]='0' then
+			if est[1]='1' then
+				if est[2]='2' then
+					return "0123"
+				else
+					return "0132"
+				end
+			elseif est[1]='2' then
+				if est[2]='1' then
+					return "0213"
+				else
+					return "0312"
+				end
+			else
+				if est[2]='1' then
+					return "0231"
+				else
+					return "0321"
+				end
+			end
+		elseif est[0]='1' then
+			if est[1]='0' then
+				if est[2]='2' then
+					return "1023"
+				else
+					return "1032"
+				end
+			elseif est[1]='2' then
+				if est[2]='3' then
+					return "3012"
+				else
+					return "2013"
+				end
+			else
+				if est[2]='2' then
+					return "3021"
+				else
+					return "2031"
+				end
+			end
+		elseif est[0]='2' then
+			if est[1]='0' then
+				if est[2]='1' then
+					return "1203"
+				else
+					return "1302"
+				end
+			elseif est[1]='1' then
+				if est[2]='0' then
+					return "2103"
+				else
+					return "3102"
+				end
+			else
+				if est[2]='1' then
+					return "3201"
+				else
+					return "2301"
+				end
+			end
+		else
+			if est[1]='0' then
+				if est[2]='1' then
+					return "1230"
+				else
+					return "1320"
+				end
+			elseif est[1]='1' then
+				if est[2]='2' then
+					return "3120"
+				else
+					return "2130"
+				end
+			else
+				if est[2]='1' then
+					return "3210"
+				else
+					return "2310"
+				end
+			end
+		end 
+	elseif |est|=9 and est[8]= '7' then
+		if est[0]='0' then
+			if est[1]='1' then
+				if est[2]='2' then
+					return est[4]+""+est[5]+""+est[6]+""+est[7]				
+				else
+					return est[4]+""+est[5]+""+est[7]+""+est[6]
+				end
+			elseif est[1]='2' then
+				if est[2]='1' then
+					return est[4]+""+est[6]+""+est[5]+""+est[7]					
+				else
+					return est[4]+""+est[6]+""+est[7]+""+est[5]
+				end
+			else
+				if est[2]='2' then
+					return est[4]+""+est[7]+""+est[6]+""+est[5]					
+				else
+					return est[4]+""+est[7]+""+est[5]+""+est[6]
+				end
+			end
+		elseif est[0]= '1' then
+			if est[1]='0' then
+				if est[2]='2' then
+					return est[5]+""+est[4]+""+est[6]+""+est[7]					
+				else
+					return est[5]+""+est[4]+""+est[7]+""+est[6]
+				end
+			elseif est[1]='2' then
+				if est[2]='3' then
+					return est[5]+""+est[6]+""+est[7]+""+est[4]					
+				else
+					return est[5]+""+est[6]+""+est[4]+""+est[7]
+				end
+			else
+				if est[2]='2' then
+					return est[5]+""+est[7]+""+est[6]+""+est[4]					
+				else
+					return est[5]+""+est[7]+""+est[4]+""+est[6]
+				end
+			end
+		elseif est[0]= '2' then
+			if est[1]='0' then
+				if est[2]='1' then
+					return est[6]+""+est[4]+""+est[5]+""+est[7]	+""				
+				else
+					return est[6]+""+est[4]+""+est[7]+""+est[5]+""
+				end
+			elseif est[1]='1' then
+				if est[2]='0' then
+					return est[6]+""+est[5]+""+est[4]+""+est[7]					
+				else
+					return est[6]+""+est[5]+""+est[7]+""+est[4]
+				end
+			else
+				if est[2]='1' then
+					return est[6]+""+est[7]+""+est[5]+""+est[4]					
+				else
+					return est[6]+""+est[7]+""+est[4]+""+est[5]
+				end
+			end
+		else
+			if est[1]='0' then
+				if est[2]='1' then
+					return est[7]+""+est[4]+""+est[5]+""+est[6]					
+				else
+					return est[7]+""+est[4]+""+est[6]+""+est[5]
+				end
+			elseif est[1]='1' then
+				if est[2]='2' then
+					return est[7]+""+est[5]+""+est[6]+""+est[4]					
+				else
+					return est[7]+""+est[5]+""+est[4]+""+est[6]
+				end
+			else
+				if est[2]='1' then
+					return est[7]+""+est[6]+""+est[5]+""+est[4]					
+				else
+					return est[7]+""+est[6]+""+est[4]+""+est[5]
+				end 
+				
+			end
+		end
+	else return λ
+	end
+end
+
+
+function ImpFleC(est,sim) begin
+	return λ
+end
+
+function createDecoder():ITransducer begin
+	Est :=    {"ST", "ERR"} 
+			∪ { ⟨a⟩ | a ∈   ('0'‥'3')}
+			∪ { ⟨a,b⟩ | a ∈   ('0'‥'3'), b ∈    ('0'‥'3')\{a}}
+			∪ { ⟨a,b,c⟩ | a ∈   ('0'‥'3'), b ∈    ('0'‥'3')\{a},c ∈   ('0'‥'3')\{a,b}}
+			∪ { ⟨a,b,c,d,'3'⟩ | a ∈   ('0'‥'3'), b ∈    ('0'‥'3')\{a}, c ∈   ('0'‥'3')\{a,b}, d ∈  ('0'‥'3')\{a,b,c}} 
+			∪ { ⟨a,b,c,d,e,f,ga,ha,i⟩ | a ∈   ('0'‥'3'), b ∈    ('0'‥'3')\{a}, c ∈   ('0'‥'3')\{a,b}, d ∈  ('0'‥'3')\{a,b,c}, e ∈ ('a'‥'d'), f ∈ ('a'‥'d'),ga ∈ ('a'‥'d'),ha ∈ ('a'‥'d'),i ∈ ('4'‥'7')} 
+	Alf :=  ('0'‥'3') ∪ ('a'‥'d') 
+	Out := Alf ∪ ('4'‥'9')
+	Ini := "ST"
+			
+	Fin := { ⟨a,b,c,d,e,f,ga,ha,'7'⟩ | a ∈   ('0'‥'3'), b ∈    ('0'‥'3')\{a}, c ∈   ('0'‥'3')\{a,b}, d ∈  ('0'‥'3')\{a,b,c}, e ∈ ('a'‥'d'), f ∈ ('a'‥'d'),ga ∈ ('a'‥'d'),ha ∈ ('a'‥'d')} ∪ {"ERR"}
+	return  GDeterministicTransducer(Est,Alf,Out,Ini,Fin,δ,h,ImpFleC)
+end
+g(x):= ""
+
+procedure test(M:ITransducer) begin
+	var sc:java.util.Scanner(System.$in)
+	
+		var string: String
+			
+			
+		repeat 
+		
+			print "----------------------------"
+			print "Input strings of the form xyz:W#. with x, y, over "+"* (end with an empty string)"
+			string:=sc.nextLine()
+			if string ≠ λ then
+				result:=M.acceptsString(string)
+				print "The string was "+(result?"accepted":"not accepted")+". Output: "+M.getOutputString()		
+			end	
+		until string=λ
+		
+		
+	
+	print "Execution Terminated"
+end
+
+
+function δ(est,sim) begin
+		if est = "ST" and sim in ('0'‥'3') then
+		return ⟨sim⟩
+	elseif est= "ST" and sim in ('a'‥'d') then return "ERR"
+	elseif est = "ERR" then return "ERR"
+	elseif |est| = 1 and not (sim in est) and sim in ('0'‥'3') then return ⟨est[0],sim⟩
+	elseif |est| = 2 and not (sim in est) and sim in ('0'‥'3') then return ⟨est[0],est[1],sim⟩
+	elseif |est| = 3 and not (sim in est) and sim in ('0'‥'3') then return ⟨est[0],est[1],est[2],sim,'3'⟩
+	elseif |est| = 5 and sim in ('a'‥'d') then return ⟨est[0],est[1],est[2],est[3],sim,'a','a','a','4'⟩
+	elseif |est| = 9 and sim in ('a'‥'d') then
+		if est[8] = '4' then return ⟨est[0],est[1],est[2],est[3],est[4],sim,'a','a','5'⟩
+		elseif est[8] = '5' then return ⟨est[0],est[1],est[2],est[3],est[4],est[5],sim,'a','6'⟩
+		elseif est[8] = '6' then return ⟨est[0],est[1],est[2],est[3],est[4],est[5],est[6],sim,'7'⟩
+		elseif est[8] = '7' then return ⟨est[0],est[1],est[2],est[3],sim,'a','a','a','4'⟩
+		else return "ERR"
+		end 
+	else return "ERR"
+	end
+end
+
+function h(est) begin
+ 	if |est|=5 then
+	 if est[0]='0' then
+   		if est[1]='2' then
+   			if est[2]='3' then   
+   				return "0312"
+   			else
+   				return "0213"
+   			end
+   		elseif est[1]='3' then
+   			if est[2]='1' then
+ 				return "0231"
+   			else
+   				return "0321"
+   			end
+   		else
+   			if est[2]='3' then
+   				return "0132"
+   				
+   			else
+   				return "0123"
+   			end
+   		end
+   	elseif est[0]='1' then
+   		if est[1]='3' then
+   			if est[2]='2' then
+   				return "3021"   				
+   			else
+   				return "2031"
+   			end
+   		elseif est[1]='2' then
+   			if est[2]='3' then
+   				return "3012"   				
+   			else
+   				return "2013"
+   			end
+   		else
+   			if est[2]='3' then
+   				return "1032"
+   			else
+   				return "1023"
+   			end
+   		end
+  	elseif est[0]='2' then
+  		if est[1]='0' then
+  			if est[2]='1' then
+  				return "1203"			
+  			else
+  				return "1302"
+  			end
+  		elseif est[1]='3' then
+  			if est[2]='1' then
+  				return "3201"
+  			else
+  				return "2301"
+  			end
+  			
+  		else
+  			if est[2]='3' then
+  				return "3102"
+  			else
+  				return "2103"
+  			end
+  		end
+   	else
+   		if est[1]='0' then
+   			if est[2]='1' then 
+   				return "1230"   				
+   			else
+   				return"1320"
+   			end
+   		elseif est[1]='1' then
+   			if est[2]='0' then
+   				return"2130"   				
+   			else
+   				return"3120"
+   			end
+   		else
+   			if est[2]='0' then
+ 				return "2310"
+   			else
+   				return"3210"
+   			end
+   		end
+   	end	
+	elseif |est|=9 and est[8]= '7' then
+		if est[0]='0' then
+			if est[1]='1' then
+				if est[2]='2' then
+					return est[4]+""+est[5]+""+est[6]+""+est[7]				
+				else
+					return est[4]+""+est[5]+""+est[7]+""+est[6]
+				end
+			elseif est[1]='2' then
+				if est[2]='1' then
+					return est[4]+""+est[6]+""+est[5]+""+est[7]					
+				else
+					return est[4]+""+est[6]+""+est[7]+""+est[5]
+				end
+			else
+				if est[2]='2' then
+					return est[4]+""+est[7]+""+est[6]+""+est[5]					
+				else
+					return est[4]+""+est[7]+""+est[5]+""+est[6]
+				end
+			end
+		elseif est[0]= '1' then
+			if est[1]='0' then
+				if est[2]='2' then
+					return est[5]+""+est[4]+""+est[6]+""+est[7]					
+				else
+					return est[5]+""+est[4]+""+est[7]+""+est[6]
+				end
+			elseif est[1]='2' then
+				if est[2]='3' then
+					return est[5]+""+est[6]+""+est[7]+""+est[4]					
+				else
+					return est[5]+""+est[6]+""+est[4]+""+est[7]
+				end
+			else
+				if est[2]='2' then
+					return est[5]+""+est[7]+""+est[6]+""+est[4]					
+				else
+					return est[5]+""+est[7]+""+est[4]+""+est[6]
+				end
+			end
+		elseif est[0]= '2' then
+			if est[1]='0' then
+				if est[2]='1' then
+					return est[6]+""+est[4]+""+est[5]+""+est[7]	+""				
+				else
+					return est[6]+""+est[4]+""+est[7]+""+est[5]+""
+				end
+			elseif est[1]='1' then
+				if est[2]='0' then
+					return est[6]+""+est[5]+""+est[4]+""+est[7]					
+				else
+					return est[6]+""+est[5]+""+est[7]+""+est[4]
+				end
+			else
+				if est[2]='1' then
+					return est[6]+""+est[7]+""+est[5]+""+est[4]					
+				else
+					return est[6]+""+est[7]+""+est[4]+""+est[5]
+				end
+			end
+		else
+			if est[1]='0' then
+				if est[2]='1' then
+					return est[7]+""+est[4]+""+est[5]+""+est[6]					
+				else
+					return est[7]+""+est[4]+""+est[6]+""+est[5]
+				end
+			elseif est[1]='1' then
+				if est[2]='2' then
+					return est[7]+""+est[5]+""+est[6]+""+est[4]					
+				else
+					return est[7]+""+est[5]+""+est[4]+""+est[6]
+				end
+			else
+				if est[2]='1' then
+					return est[7]+""+est[6]+""+est[5]+""+est[4]					
+				else
+					return est[7]+""+est[6]+""+est[4]+""+est[5]
+				end 
+				
+			end
+		end
+	else return λ
+	end
+end
+
+function g(q,σ) begin
+	return λ
+end
